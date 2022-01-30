@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/EDDYCJY/go-gin-example/models"
+	"github.com/EDDYCJY/go-gin-example/pkg/es"
 	"log"
 	"net/http"
 
@@ -20,7 +21,7 @@ func init() {
 	models.Mysql()
 	logging.Setup()
 	gredis.Setup()
-	//es.InitEs()
+	es.InitEs()
 	util.Setup()
 }
 

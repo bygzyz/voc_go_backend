@@ -1,20 +1,95 @@
+//package main
+//
+//import (
+//	"fmt"
+//)
+//
+//func ChangeMap(m map[int]int) {
+//	m[1] = 2
+//}
+//
+//func main() {
+//	var a = make(map[int]int)
+//	a[1] = 1
+//	fmt.Println(a)
+//	ChangeMap(a)
+//	fmt.Println(a)
+//}
+
+//package main
+//
+//import (
+//	"fmt"
+//)
+//
+//func ChangeMap(m map[int]int) {
+//	m = nil
+//}
+//
+//func main() {
+//	var a map[int]int = make(map[int]int)
+//	a[1] = 1
+//	fmt.Println(a)
+//	ChangeMap(a)
+//	fmt.Println(a)
+//}
+
+//package main
+//
+//import (
+//"fmt"
+//)
+//
+//func ChangeMap(m map[int]int) {
+//	m = nil
+//}
+//
+//func main() {
+//	var a map[int]int
+//
+//	fmt.Println(a==nil)
+//}
+
+// panic recover go中把错误和异常区分开来，我们在写程序的时候可预知到的是错误，显示将它捕获并进行处理；不可预知的叫做异常。
+
+//package main
+//
+//import (
+//	"fmt"
+//)
+//
+//func ChangeMap(m map[int]int) {
+//	m = nil
+//}
+//
+//func main() {
+//	var a map[int]int
+//
+//	for _,value := range a {
+//		fmt.Println(value)
+//	}
+//}
+
+// 子协程中panic无法被外层recover捕获
 package main
 
 import "fmt"
 
-func main() {
-	//a := 1
-	//b := &a //  &代表取出a变量的地址，a本身可以是一个普通变量也可以是一个指针变量
-	//c := *b // * 取地址对应的值
-	//println(a)
-	//fmt.Printf("%T\n",b)
-	//fmt.Printf("%T\n",c)
-	//println(c)
-	//res, _ := http.Get("http://1.117.229.170:9200/voc_yuwell")
-	//fmt.Println(res.StatusCode)
+func compute_a() interface{} {
+	return 1
+}
 
-	var a map[string]interface{} = map[string]interface{}{
-		"1": "1",
+func main() {
+	if a := compute_a(); a == nil {
+		fmt.Println("a等于nil")
+	} else {
+		fmt.Println("a不等于nil")
 	}
-	fmt.Println(a)
+	d := []int{1, 2}
+	b := make([]int, 0, 2)
+	for i := range d {
+		b = append(b, i)
+	}
+	fmt.Println(b)
+
 }

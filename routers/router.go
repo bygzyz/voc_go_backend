@@ -45,6 +45,9 @@ func InitRouter() *gin.Engine {
 		apiV1.PUT("/user", api.UpdateUser)
 		// 删除用户
 		apiV1.DELETE("/user", api.DeleteUser)
+
+		// 数据探索
+		apiV1.GET("/data_explore_message_list", api.DataExploreFilterMessage)
 		//获取标签列表
 		//apiv1.GET("/tags", v1.GetTags)
 		//新建标签

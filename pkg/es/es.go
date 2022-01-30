@@ -1,138 +1,107 @@
-package es
+package main
 
 import (
 	"context"
 	"fmt"
-	"github.com/EDDYCJY/go-gin-example/pkg/setting"
-	"gopkg.in/olivere/elastic.v5"
-	"log"
-	"os"
+	"github.com/olivere/elastic/v7"
 	"reflect"
 )
 
-type Article struct {
-	Title   string `json:"title"`   //文章标题
-	Content string `json:"content"` //文章标题
+const indexName = "voc_yuwell"
+const esIndexUrlPrefix = "http://1.117.229.170:9200"
+
+// YuWell 定义yuwell的结构体
+type YuWell struct {
+	Category string `json:"category"` //品类
+	Brand    string `json:"brand"`    //品牌
 }
 
-func InitEs() {
-	client, err := NewEsClient()
+func main() {
+
+	// 创建ES client用于后续操作ES
+	client, err := elastic.NewClient(
+		// 设置ES服务地址，支持多个地址
+		elastic.SetSniff(false), // TODO 特别注意：该参数用于设置集群；单个节点的es时需要设置该值为false
+		elastic.SetURL(esIndexUrlPrefix),
+		// 设置基于http base auth验证的账号和密码
+		elastic.SetBasicAuth("user", "secret")) // 建议创建es时设置密码
 	if err != nil {
-		fmt.Println("es 连接成功")
+		// Handle error
+		fmt.Printf("连接失败: %v\n", err)
 	} else {
-		fmt.Println("es 连接失败")
+		fmt.Println("连接成功")
 	}
 
-	//指定es请求时需要一个上下文
+	//执行ES请求需要提供一个上下文对象
 	ctx := context.Background()
 
-	//创建term查询条件,用于精确查询
-	termQuery := elastic.NewMatchQuery("title", "0916文章1")
-
-	searchResult, err := client.Search().
-		Index("voc_mini_program"). // 设置索引名
-		Query(termQuery).          //设置查询条件
-		//Sort("created_time", false). //设置排序字段,根据created_time字段降序排列,第二个字段false表示逆序
-		From(0).      //设置分页偏移量 - 起始偏移量,从0行记录开始
-		Size(10).     //设置分页参数 - 每页大小
-		Pretty(true). //查询结果返回可读性较好的JSON格式
-		Do(ctx)       //执行请求
-
-	// TODO 后续其他es查询条件测试: https://www.tizi365.com/archives/858.html
-
+	// 首先检测下索引是否存在
+	exists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("查询总耗时 %d ms,查询结果总条数: %d\n", searchResult.TookInMillis, searchResult.TotalHits())
+	if !exists {
+		panic(fmt.Errorf("index %s 不存在", indexName))
+	}
+
+	// 创建成功后插入一条数据
+	//msg1 := YuWell{Category: "制氧机", Brand: "鱼跃"}
+	//msg1 := YuWell{Category: "血压计", Brand: "欧姆龙"}
+	//put1, err := client.Index().Index(indexName).Id("1").BodyJson(msg1).Do(ctx)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Printf("文档id: %s，索引名: %s\n", put1.Id, put1.Index)
+	//
+	//// 插入成功后查询一个数据（根据指定id查询数据）
+	//get1, err := client.Get().Index(indexName).Id("1").Do(ctx)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//if get1.Found {
+	// 手动将文档转换为 go struct 对象
+	//msg2 := YuWell{}
+	//data,_ := get1.Source.MarshalJSON()
+	//json.Unmarshal(data,&msg2)
+	//fmt.Println(msg2.Category)
+	//}
+
+	// es DSL search
+	// 创建term查询条件，用于精确查询
+	termQuery := elastic.NewTermQuery("category", "制氧机")
+	//
+	searchResult, err := client.Search().
+		Index(indexName).          // 设置索引名
+		Query(termQuery).          // 设置查询条件
+		Sort("origin_time", true). // 设置排序字段，根据Created字段升序排序，第二个参数false表示逆序
+		From(0).                   // 设置分页参数 - 起始偏移量，从第0行记录开始
+		Size(10).                  // 设置分页参数 - 每页大小
+		Pretty(true).              // 查询结果返回可读性较好的JSON格式
+		Do(ctx)                    // 执行请求
+
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+
+	fmt.Printf("查询消耗时间 %d ms, 结果总数: %d\n", searchResult.TookInMillis, searchResult.TotalHits())
 
 	if searchResult.TotalHits() > 0 {
-		// 查询结果不为0,将结果打印出来
-		var article Article
-		// 通过Each方法,将es结果的json结构转换为struct对象
-		for _, item := range searchResult.Each(reflect.TypeOf(article)) {
+		// 查询结果不为空，则遍历结果
+		var b1 YuWell
+		// 通过Each方法，将es结果的json结构转换成struct对象
+		for _, item := range searchResult.Each(reflect.TypeOf(b1)) {
 			// 转换成Article对象
-			if t, ok := item.(Article); ok {
-				fmt.Println(t.Title)
-				fmt.Println(t.Content)
+			if t, ok := item.(YuWell); ok {
+				fmt.Println(t.Category)
 			}
 		}
 	}
 
+	// 修改一条数据
+	// 查询一条数据
+	// 删除一条数据
+	// 查询数据
 }
-
-//NewEsClient 初始化连接es的客户端
-func NewEsClient() (*elastic.Client, error) {
-	url := fmt.Sprintf("http://%s:%d", setting.ElasticsearchConfig.Host, setting.ElasticsearchConfig.Port)
-	client, err := elastic.NewClient(
-		//elastic 服务地址
-		elastic.SetURL(url),
-		// 设置错误日志输出
-		elastic.SetErrorLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
-		// 设置info日志输出
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
-		// 允许指定弹性是否应该定期检查集群
-		elastic.SetSniff(false))
-	if err != nil {
-		log.Fatalln("Failed to create elastic client")
-	}
-	return client, err
-}
-
-//
-//type SearchRequest struct {
-//}
-//
-//// 查询
-//func (r *SearchRequest) ToFilter() *EsSearch {
-//	var search EsSearch
-//	if len(r.Nickname) != 0 {
-//		search.ShouldQuery = append(search.ShouldQuery, elastic.NewMatchQuery("nickname", r.Nickname))
-//	}
-//	if len(r.Phone) != 0 {
-//		search.ShouldQuery = append(search.ShouldQuery, elastic.NewTermsQuery("phone", r.Phone))
-//	}
-//	if len(r.Ancestral) != 0 {
-//		search.ShouldQuery = append(search.ShouldQuery, elastic.NewMatchQuery("ancestral", r.Ancestral))
-//	}
-//	if len(r.Identity) != 0 {
-//		search.ShouldQuery = append(search.ShouldQuery, elastic.NewMatchQuery("identity", r.Identity))
-//	}
-//
-//	if search.Sorters == nil {
-//		search.Sorters = append(search.Sorters, elastic.NewFieldSort("create_time").Desc())
-//	}
-//
-//	search.From = (r.Num - 1) * r.Size
-//	search.Size = r.Size
-//	return &search
-//}
-//
-//func (es *UserES) Search(ctx context.Context, filter *model.EsSearch) ([]*model.UserEs, error) {
-//	boolQuery := elastic.NewBoolQuery()
-//	boolQuery.Must(filter.MustQuery...)
-//	boolQuery.MustNot(filter.MustNotQuery...)
-//	boolQuery.Should(filter.ShouldQuery...)
-//	boolQuery.Filter(filter.Filters...)
-//
-//	// 当should不为空时，保证至少匹配should中的一项
-//	if len(filter.MustQuery) == 0 && len(filter.MustNotQuery) == 0 && len(filter.ShouldQuery) > 0 {
-//		boolQuery.MinimumShouldMatch("1")
-//	}
-//
-//	service := es.client.Search().Index(es.index).Query(boolQuery).SortBy(filter.Sorters...).From(filter.From).Size(filter.Size)
-//	resp, err := service.Do(ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if resp.TotalHits() == 0 {
-//		return nil, nil
-//	}
-//	userES := make([]*model.UserEs, 0)
-//	for _, e := range resp.Each(reflect.TypeOf(&model.UserEs{})) {
-//		us := e.(*model.UserEs)
-//		userES = append(userES, us)
-//	}
-//	return userES, nil
-//}

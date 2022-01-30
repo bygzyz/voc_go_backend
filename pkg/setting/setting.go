@@ -61,8 +61,9 @@ type Redis struct {
 var RedisSetting = &Redis{}
 
 type Es struct {
-	Host string
-	Port int
+	Host      string
+	Port      int
+	IndexName string
 }
 
 var ElasticsearchConfig = &Es{}
