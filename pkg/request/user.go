@@ -2,8 +2,8 @@ package request
 
 // 获取用户列表结构体
 type UserRequestStruct struct {
-	Username    string `json:"username" validate:"required"`
-	Password    string `json:"password" validate:"required"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
 	Desc        string `json:"desc"`
 	IsActive    bool   `json:"is_active"`
 	Virtual     bool   `json:"virtual"`

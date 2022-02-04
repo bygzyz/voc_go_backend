@@ -17,18 +17,17 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.16
 	github.com/lib/pq v1.2.0 // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/natefinch/lumberjack v2.0.0+incompatible
-	github.com/olivere/elastic/v7 v7.0.31 // indirect
+	github.com/olivere/elastic/v7 v7.0.31
 	github.com/spf13/viper v1.9.0
 	github.com/swaggo/gin-swagger v1.3.1
 	github.com/unknwon/com v1.0.1
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/text v0.3.6
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
-	gopkg.in/olivere/elastic.v5 v5.0.86
 	//github.com/jinzhu/gorm v1.9.16 // indirect
 	gorm.io/gorm v1.21.15
 )

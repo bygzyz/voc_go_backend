@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/EDDYCJY/go-gin-example/models"
 	"github.com/EDDYCJY/go-gin-example/pkg/app"
 	"github.com/EDDYCJY/go-gin-example/pkg/e"
@@ -14,16 +15,19 @@ import (
 // GetUser 获取用户
 func GetUser(c *gin.Context) {
 
-	appG := app.Gin{C: c}
+	//appG := app.Gin{C: c}
 	// 绑定参数
 	var req request.UserRequestStruct
-	err := c.ShouldBind(&req)
-	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
-		return
-	}
+	//err := c.ShouldBind(&req)
+	//if err != nil {
+	//	appG.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
+	//	return
+	//}
 
 	users, err := models.GetUser(&req)
+	if err != nil {
+		panic(fmt.Errorf("获取用户失败"))
+	}
 
 	// 转为ResponseStruct, 隐藏部分字段
 	//var respStruct []response.UserListResponseStruct
